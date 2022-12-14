@@ -5,7 +5,7 @@ import datetime
 # 1초마다 현재 시간 체크
 # min:int : 0~59
 def checkminute(now:datetime.datetime, min:int=5)->bool: # min : 체크할 시간 값
-    if((now.minute % min == 0) and now.second == 0):     # 0분 0초면 참 리턴
+    if((now.minute % min == 0) and now.second == 0): # 0분 0초면 참 리턴
         return True
     return False
 
@@ -33,8 +33,8 @@ def create_desciprtion(parse_data:dict, remain_flag=True):
     desc += "[URL]          : " + parse_data['ctf_url']                     + '\n'        # ctf url
     desc += "[Form]         : " + parse_data['format_text']                 + '\n'        # ctf 종류 ex)Jeopardy
     desc += "[Weight]       : " + parse_data['ctf_weight']                  + '\n'        # ctf weight
-    desc += "[Start Date]   : " + __str2date(parse_data['start_date'])   + ' (KST) \n'    # 시작 시간
-    desc += "[Finish Date]  : " + __str2date(parse_data['finish_date'])  + ' (KST) \n'    # 종료 시간
+    desc += "[Start Date]   : " + __str2date(parse_data['start_date'])   + ' (KST) \n' # 시작 시간
+    desc += "[Finish Date]  : " + __str2date(parse_data['finish_date'])  + ' (KST) \n' # 종료 시간
     if(remain_flag==True):
         sd_chk = checknow(parse_data['start_date'])
         if(sd_chk == None):
@@ -49,3 +49,7 @@ def create_desciprtion(parse_data:dict, remain_flag=True):
             desc += "[Finish Remaining]  : " + fd_chk  + ' \n' # 이미 끝남
     return desc
 
+def get_diff_channel_id(ori:list, new:list):
+    ori_set = set(ori)
+    new_set = set(new)
+    return list(ori_set.difference(new_set))

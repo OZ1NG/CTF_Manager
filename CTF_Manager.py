@@ -8,7 +8,7 @@ import util
 import database
 import asyncio
 
-TOKEN = <Your Token>
+TOKEN = "<Your Token>"
 
 intents = discord.Intents.default()
 
@@ -74,20 +74,41 @@ async def run():
                 msg = await ch.send(util.create_desciprtion(nd))
                 add_new_data(ch.id, msg, nd)
 
+INIT_FLAG = True
 # 5분 마다 새롭게 채널 리스트를 받아옴
 @tasks.loop(minutes=5)
 async def get_channel_list():
-    global CC_LIST
+    global CC_LIST, INIT_FLAG
     # 모든 채널리스트를 가져온 후 특정 토픽이 설정된 채널만 골라냄
     print(f'[+] Get Channel List...')
     tmp:list[discord.channel.TextChannel] = [] 
     chs = bot.get_all_channels()
     for ch in chs:
         if((ch.type.name == 'text') and (ch.topic != None) and ("#ctftime_P" in ch.topic)): # 텍스트 채널 구분
-            #print(f"{ch.name}:{ch.topic}:{ch.id}") # test
             cc = bot.get_channel(ch.id) # connect channel 
             tmp.append(cc)
+    
+    # 기존 값과 채널 id 비교
+    ## ch.id 추출
+    ch_id_ori = [x.id for x in CC_LIST]
+    ch_id_new = [x.id for x in tmp]
+    ## 다르면 ori에는 있지만 new에는 없는 channel id 가져옴
+    diff_list = util.get_diff_channel_id(ch_id_ori, ch_id_new)
+    for dl in diff_list:
+        DB.delete_channel_data(dl)
+
+    # 새로운 채널 리스트 덮어씌움
     CC_LIST = tmp
+
+    # 기존 DB 값에서도 제거
+    # 위의 제거 코드는 실시간으로만 반영이 되기 떄문에 봇이 종료되어 있던 그 사이에 채널이 삭제된 경우 DB에서 지울 수 없는 문제를 해결하기 위한 코드
+    # 처음 한번만 실행
+    if(INIT_FLAG):
+        ch_id_ori = DB.get_all_channel_id()
+        diff_list = util.get_diff_channel_id(ch_id_ori, ch_id_new)
+        for dl in diff_list:
+            DB.delete_channel_data(dl)
+        INIT_FLAG = False
 
 @bot.event
 async def on_ready(): # 봇이 처음 시작할 때 실행되는 함수

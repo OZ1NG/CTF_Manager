@@ -1,9 +1,6 @@
 import sqlite3
 import os
 
-# TODO : 입력받은 email에 strip 적용
-# 데이터를 조회할 때 검증을 이메일로만 하기 때문에 취약함. # 따라서 서버쪽에서 미리 검증 후 사용 해줘야함
-
 class DBManager():
     def __init__(self, dbpath='./db', dbname="ctfmanager.db") -> None:
         self.__create_directory(dbpath)
@@ -46,6 +43,14 @@ class DBManager():
             return False # 모종의 이유로 제거 실패
         return True
 
+    def delete_channel_data(self, channel_id:int):
+        self.cursor.execute(f"DELETE FROM msg_info WHERE channel_id='{channel_id}'")
+        self.DB.commit()
+        # 제대로 제거 되었는지 체크
+        if(self.__chk_overlap_channel_id(channel_id)):
+            return False # 모종의 이유로 제거 실패
+        return True
+
     def search_data(self, msg_id:int):
         res = self.cursor.execute(f"SELECT ctf_title,ctf_url,format_text,ctf_weight,start_date,finish_date FROM msg_info WHERE msg_id='{msg_id}'")
         find = res.fetchall()
@@ -58,6 +63,13 @@ class DBManager():
         result:list[int] = [int(f[0]) for f in find]
         return result
 
+    # 모든 채널 id를 전부 가져옴
+    def get_all_channel_id(self):
+        res = self.cursor.execute(f"SELECT channel_id FROM msg_info")
+        find = res.fetchall()
+        result:list[int] = [int(f[0]) for f in find]
+        return list(set(result)) # 중복 제거
+
     # 채널 id에 대한 msg id를 전부 가져옴
     def get_msg_id(self, channel_id:int):
         res = self.cursor.execute(f"SELECT msg_id FROM msg_info WHERE channel_id='{channel_id}'")
@@ -69,6 +81,15 @@ class DBManager():
     # 리턴 : 값이 있으면 참, 없으면 거짓
     def __chk_overlap(self, msg_id:int):
         res = self.cursor.execute(f"SELECT msg_id FROM msg_info WHERE msg_id='{msg_id}'")
+        find = res.fetchall()
+        if(len(find) == 0):
+            return False
+        return True
+
+    # db channel_id 중복 체크 # private
+    # 리턴 : 값이 있으면 참, 없으면 거짓
+    def __chk_overlap_channel_id(self, channel_id:int):
+        res = self.cursor.execute(f"SELECT channel_id FROM msg_info WHERE channel_id='{channel_id}'")
         find = res.fetchall()
         if(len(find) == 0):
             return False
@@ -90,9 +111,10 @@ if __name__ == "__main__":
     dbm = DBManager(dbname="test.db")
     #dbm = DBManager()
 
-    # add test : OK
-    #res = dbm.add_data(1111, 5555, "test1", "3333", "4444" , "5555", "6666", "7777")
-    # res = dbm.add_data(3333, 4444, "test2", "3333", "4444" , "5555", "6666", "7777")
+    # # add test : OK
+    res = dbm.add_data(1111, 1111, "test1", "3333", "4444" , "5555", "6666", "7777")
+    res = dbm.add_data(1111, 2222, "test1", "3333", "4444" , "5555", "6666", "7777")
+    res = dbm.add_data(2222, 3333, "test2", "3333", "4444" , "5555", "6666", "7777")
     #print(res)
 
     # search test : OK
@@ -115,3 +137,8 @@ if __name__ == "__main__":
 
     # is_ctf_title test : OK
     # print(dbm.is_ctf_title(1111, 'test2'))
+
+    #dbm.delete_channel_data(1111)
+
+    print(dbm.get_all_channel_id())
+
