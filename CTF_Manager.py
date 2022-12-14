@@ -19,8 +19,6 @@ PCTF = pctftime.Pctftime()
 
 DB = database.DBManager()
 
-MSG_ID_LIST:dict = {} # {channel_id:[msg_id,...], ...}
-
 CC_LIST:list[discord.channel.TextChannel] = [] # connect channel list
 
 # TODO: 기존에 없는 데이터가 존재하면 해당 데이터 send
@@ -32,7 +30,7 @@ def add_new_data(channel_id:int ,msg:discord.Message, newdata:dict):
 # 1분 마다 새로운 데이터 파싱 후 전송
 @tasks.loop(minutes=1)
 async def run():
-    global MSG_ID_LIST, CC_LIST
+    global CC_LIST
 
     for ch in CC_LIST:
         # 기존 메시지 수정 (시간 정보)
@@ -93,7 +91,7 @@ async def get_channel_list():
 
 @bot.event
 async def on_ready(): # 봇이 처음 시작할 때 실행되는 함수
-    global MSG_ID_LIST, CC_LIST
+    global CC_LIST
 
     print(f'[+] logged in as {bot.user}')
 
