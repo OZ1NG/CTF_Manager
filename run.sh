@@ -1,0 +1,1 @@
+python3.11 -X tracemalloc CTF_Manager.py
