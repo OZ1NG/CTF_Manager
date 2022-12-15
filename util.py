@@ -15,6 +15,7 @@ def check9o(now:datetime.datetime):
         return True
     return False
 
+# UTC -> KST
 def __str2date(date:str):        
     date_time_obj = datetime.datetime.strptime(date, '%Y%m%dT%H%M%S') + datetime.timedelta(hours=9)
     return date_time_obj.strftime("%Y/%m/%d, %H:%M:%S")
@@ -22,7 +23,7 @@ def __str2date(date:str):
 # 현재시간과 남은 시간을 비교
 # type: start=시작시간, finish=종료시간
 def checknow(date:str)->datetime.timedelta:
-    t = datetime.datetime.strptime(date, '%Y%m%dT%H%M%S') - datetime.datetime.now()
+    t = datetime.datetime.strptime(date, '%Y%m%dT%H%M%S') + datetime.timedelta(hours=9) - datetime.datetime.now()
     if(t.days < 0):
         return None
     return str(t).split('.')[0]
